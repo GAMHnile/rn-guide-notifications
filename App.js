@@ -23,8 +23,14 @@ export default function App() {
       })
       .then((statusObj) => {
         if (statusObj.status !== "granted") {
-          return;
+          throw new Error("Notifications Permission denied");
         }
+      })
+      .then(() => {
+        return Notifications.getExpoPushTokenAsync();
+      })
+      .then((tokenObj) => {
+        //console.log(tokenObj);
       })
       .catch((err) => console.log(err));
   }, []);
@@ -47,15 +53,30 @@ export default function App() {
   }, []);
 
   const triggerNotificationHandler = () => {
-    Notifications.scheduleNotificationAsync({
-      content: {
-        title: "First notification",
-        body: "Sending my first local notification with expo notification",
+    // Notifications.scheduleNotificationAsync({
+    //   content: {
+    //     title: "First notification",
+    //     body: "Sending my first local notification with expo notification",
+    //   },
+    //   trigger: {
+    //     seconds: 5,
+    //   },
+    // });
+    fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        "Host": "exp.host",
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip, deflate",
+        "Content-Type": "application/json"
       },
-      trigger: {
-        seconds: 5,
-      },
-    });
+      body: JSON.stringify({
+        to: process.env.MY_EXPO_PUSH_TOKEN,//add your push token
+        title: "A self notification",
+        body: "Sent to myself pretty fast few seconds only."
+      })
+    })
+    .catch(err=>console.log(err));
   };
   return (
     <View style={styles.container}>
